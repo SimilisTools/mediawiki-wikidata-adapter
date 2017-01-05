@@ -6,90 +6,48 @@ class WikidataAdapter {
 
 	public static function executeWikidataAdapterret ( $parser, $frame, $args ) {
 			
-		global $wgWikidataAdapter;
 		global $wgWikidataAdapterExpose; // Take the configuration
 		global $wgWikidataAdapterValues; // What we do store
 
-		$source = "";
-		$set = "";
+		$source = null;
+		$url = null;
 
 		if ( isset( $args[0])  && !empty( $args[0] ) ) {
-			$set = trim( $frame->expand( $args[0] ) );
 
-			if ( isset( $args[1])  && !empty( $args[1] ) ) {
-				$source = trim( $frame->expand( $args[1] ) );
+			$source = trim( $frame->expand( $args[0] ) );
 
-				$vars = explode( ",", $source );
+			$vars = explode( ",", $source );
+					
+			if ( array_key_exists( "db", $wgWikidataAdapterExpose ) ) {
 
-				// Specific DB
-				$dbtype = $wgWikidataAdapter["type"];
-				$dbserver = $wgWikidataAdapter["server"];
-				$dbuser = $wgWikidataAdapter["username"];
-				$dbpassword = $wgWikidataAdapter["password"];
-				$dbname = $wgWikidataAdapter["name"];
-				$dbflags = $wgWikidataAdapter["flags"];
-				$dbtablePrefix = $wgWikidataAdapter["tableprefix"];
-				
-				if ( array_key_exists( $set, $wgWikidataAdapterExpose ) ) {
-					
-					
-					if ( array_key_exists( "db", $wgWikidataAdapterExpose[$set] ) ) {
-
-						if ( array_key_exists( "type", $wgWikidataAdapterExpose[$set]["db"] ) ) {
-							$dbtype = $wgWikidataAdapterExpose[$set]["db"]["type"];
-						}
-						if ( array_key_exists( "server", $wgWikidataAdapterExpose[$set]["db"] ) ) {
-							$dbserver = $wgWikidataAdapterExpose[$set]["db"]["server"];
-						}
-						if ( array_key_exists( "username", $wgWikidataAdapterExpose[$set]["db"] ) ) {
-							$dbuser = $wgWikidataAdapterExpose[$set]["db"]["username"];
-						}
-						if ( array_key_exists( "password", $wgWikidataAdapterExpose[$set]["db"] ) ) {
-							$dbpassword = $wgWikidataAdapterExpose[$set]["db"]["password"];
-						}
-						if ( array_key_exists( "name", $wgWikidataAdapterExpose[$set]["db"] ) ) {
-							$dbname = $wgWikidataAdapterExpose[$set]["db"]["name"];
-						}
-						if ( array_key_exists( "flags", $wgWikidataAdapterExpose[$set]["db"] ) ) {
-							$dbflags = $wgWikidataAdapterExpose[$set]["db"]["flags"];
-						}
-						if ( array_key_exists( "tableprefix", $wgWikidataAdapterExpose[$set]["db"] ) ) {
-							$dbtablePrefix = $wgWikidataAdapterExpose[$set]["db"]["tableprefix"];
-						}
-						
-					}
-					
-					// Database definition
-					$db = DatabaseBase::factory( $dbtype,
-							array(
-							'host' => $dbserver,
-							'user' => $dbuser,
-							'password' => $dbpassword,
-							// Both 'dbname' and 'dbName' have been
-							// used in different versions.
-							'dbname' => $dbname,
-							'dbName' => $dbname,
-							'flags' => $dbflags,
-							'tablePrefix' => $dbtablePrefix,
-							)
-					);
-					
-					if ( array_key_exists( "query", $wgWikidataAdapterExpose[$set] ) ) {
-						$query = $wgWikidataAdapterExpose[$set]["query"];
-	
-						$query = self::process_query( $query, $vars );
-						
-						self::query_store_DB( $db, $query, $set, $wgWikidataAdapterValues );
-						// var_dump( $wgWikidataAdapterValues );
-					}
+				if ( array_key_exists( "url", $wgWikidataAdapterExpose["db"] ) ) {
+					$url = $wgWikidataAdapterExpose["db"]["url"];
 				}
+				
 			}
+			
+			$url = self::processQuery( $url, $vars );
+			
+			$data = self::procesData( $url );
+			
+			$check = checkTimestamp( $data );
+			
+			if ( ! $check ) {
+				self::addLabels( $data, $wgWikidataAdapterValues );
+				self::addRelations( $data, $wgWikidataAdapterValues );
+				self::addQualifiers( $data, $wgWikidataAdapterValues );
+			} else {
+				self::getLabels( $data, $wgWikidataAdapterValues );
+				self::getRelations( $data, $wgWikidataAdapterValues );
+				self::getQualifiers( $data, $wgWikidataAdapterValues );		
+			}
+			
 		}
 
 		return;
 	}
 
-	private static function process_query( $query, $vars ) {
+	private static function processQuery( $query, $vars ) {
 
 		$iter = 1;
 
@@ -105,30 +63,95 @@ class WikidataAdapter {
 		return $query;
 
 	}
+	
+	private static function procesData( $url, $extended ) {
+		
+		global $wgLanguageCode; // Get language code of wiki
+		$defaultLanguageCode = "en"; // Let's put harcoded default English
+		
+		$data = array();
+		
+		// Get JSON
+		$json = file_get_contents($url);
+		$obj = json_decode($json);
 
-	private static function query_store_DB( $db, $query, $set, &$wgWikidataAdapterValues ) {
-
-		$result = $db->query( $query, 'WikidataAdapter::query_store_DB' );
-
-		if ( $result ) {
-
-			if ( $result->numRows() > 0 ) {
-
-				foreach( $result as $row ) {
-					$object = array();
-					foreach ( $row as $key => $value ) {
-						$fkey = $key;
-						if ( ! empty( $set ) ) {
-							$fkey = $set.".".$key;
-						}
-						$object[$fkey] = $value;
+		// Get label and description
+		
+		if ( property_exists( $obj, "entities" ) ) {
+			foreach ( $obj['entities'] as $entity ) {
+				
+				if (  property_exists( $entity, "id" ) ) {
+					$data[$entity["id"]] = array();
+					
+					if (  property_exists( $entity, "modified" ) ) {
+						$data[$entity["id"]]["timestamp"] = $entity["modified"];
 					}
-					array_push( $wgWikidataAdapterValues, $object );
-				}
-			} 
-		}
+					
+					if (  property_exists( $entity, "labels" ) ) {
+					
+						foreach ( $entity["labels"] as $keylabel => $label ) {
 
-		return true;
+							if ( $keylabel === $wgLanguageCode ) {
+								$data[$entity["id"]]["label_local"] = $label["value"];
+							}
+							
+							if ( $keylabel === $defaultLanguageCode ) {
+								$data[$entity["id"]]["label"] = $label["value"];
+							}
+						
+						}
+					}
+					
+					if ( property_exists( $entity, "descriptions" ) ) {
+
+						foreach ( $entity["descriptions"] as $keylabel => $label ) {
+
+							if ( $keylabel === $wgLanguageCode ) {
+								$data[$entity["id"]]["description_local"] = $label["value"];
+							}
+							
+							if ( $keylabel === $defaultLanguageCode ) {
+								$data[$entity["id"]]["description"] = $label["value"];
+							}
+						
+						}
+					
+					}
+					
+					if ( $extended ) {
+					
+						if ( property_exists( $entity, "claims" ) ) {
+							
+							$data[$entity["id"]]["relations"] = array();
+							
+							foreach ( $entity["claims"] as $keyclaim => $claims ) {
+								
+								$data[$entity["id"]]["relations"][$keyclaim] = array();
+								
+								foreach ( $claims as $claim ) {
+									if ( property_exists( $claim, "mainsnak" ) ) {
+										// Continue inside
+									}
+								}
+								
+							}
+	
+						}
+					
+					}
+
+				}
+					
+			}
+		}
+		
+		
+		// Get all the diffeent relations
+		
+			// For each relation the qualifiers
+		
+		
+		return $data;
 	}
 
 

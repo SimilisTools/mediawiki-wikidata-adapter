@@ -32,46 +32,9 @@ call_user_func( function() {
 	
 	$GLOBALS['wgWikidataAdapterValues'] = array();
 	
-	
 	$GLOBALS['wgWikidataAdapterExpose'] = array(
-		"gene" => array(
-			"db" => array(
-				"server" => "localhost",
-				"type" => "mysql",
-				"name" => "extraDB",
-				"username" => "myuser",
-				"password" => "mypasswd",
-				"flags" => "",
-				"tableprefix" => ""	
-			),
-			"query" => "SELECT distinct(c.gene_alias) AS gene_alias
-				, n.gene_name AS gene_name
-				, c.chromosome AS chromosome
-				, c.start AS start
-				, c.end AS end
-				, c.strand AS strand
-				, c.source AS source
-				, c.assembly AS assembly
-				, c.annotation AS annotation
-				, c.taxon_id AS taxonid
-				, c.coding_nat AS codingnature
-				FROM coordinates c
-				LEFT
-				JOIN gene_names n
-				ON n.gene_alias = c.gene_alias
-				WHERE c.gene_alias = '#P1' group by gene_alias;",
-			"propmap" => array( // Mapping to SMW properties
-				"gene_alias" => "Has Alias",
-				"gene_name" => "Has Name",
-				"chromosome" => "Is in Chromosome",
-				"start" => "Has Location Start",
-				"end" => "Has Location End",
-				"strand" => "Is in Strand",
-				"source" => "Has Source",
-				"assembly" => "Is in Assembly",
-				"annotation" => "Has Annotation",
-				"codingnature" => "Is Coding"
-			)
+		"db" => array(
+			"url" => "https://www.wikidata.org/wiki/Special:EntityData/#P1.json"			  
 		)
 	);
 	

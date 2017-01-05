@@ -21,3 +21,8 @@ wd_id	wd_property	wd_rank wd_qualifier wd_value	wd_text
 Future
 
 mw_wd_references
+
+Return
+
+{{#wda:P1333}} -> retrieve this entry
+

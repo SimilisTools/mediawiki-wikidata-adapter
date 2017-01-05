@@ -1,9 +1,9 @@
-CREATE TABLE /*_*/wda_alias (
+CREATE TABLE /*_*/wda_labels (
 
 	`wda_id` varchar(20) NOT NULL default '',
-	`wda_alias` varchar(120) not NULL default '',
+	`wda_label` varchar(120) not NULL default '',
 	`wda_description` text not NULL default '',
-	`wda_alias_local` varchar(120) not NULL default '',
+	`wda_label_local` varchar(120) not NULL default '',
 	`wda_description_local` text not NULL default '',
 	`wda_timestamp` datetime NOT NULL default '0000-00-00 00:00:00'
 ) /*$wgDBTableOptions*/;
@@ -14,18 +14,16 @@ CREATE TABLE /*_*/wda_relations (
 	`wda_property` varchar(20) NOT NULL default '',
 	`wda_value` varchar(20) not NULL default '',
 	`wda_text` text not NULL default '',
-	`wda_rank` int not NULL default 0,
+	`wda_order` int not NULL default 0,
 	`wda_numrefs` int not NULL default 0,
-	`wda_relation_timestamp` datetime NOT NULL default '0000-00-00 00:00:00'
 ) /*$wgDBTableOptions*/;
 
 CREATE TABLE /*_*/wda_qualifiers (
 
 	`wda_id` varchar(20) NOT NULL default '',
 	`wda_property` varchar(20) NOT NULL default '',
-	`wda_rank` int not NULL default 0,
+	`wda_order` int not NULL default 0,
 	`wda_qualifier` varchar(20) NOT NULL default '',
 	`wda_qualifier_value` varchar(20) not NULL default '',
 	`wda_qualifier_text` text not NULL default '',
-	`wda_qualifier_timestamp` datetime NOT NULL default '0000-00-00 00:00:00'
 ) /*$wgDBTableOptions*/;
