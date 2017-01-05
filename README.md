@@ -26,3 +26,7 @@ Return
 
 {{#wda:P1333}} -> retrieve this entry
 
+Example json
+https://www.wikidata.org/wiki/Special:EntityData/Q868.json
+
+

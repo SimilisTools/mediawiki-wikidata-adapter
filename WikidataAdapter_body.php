@@ -30,7 +30,7 @@ class WikidataAdapter {
 			
 			$data = self::procesData( $url );
 			
-			$check = checkTimestamp( $data );
+			$check = self::checkTimestamp( $data );
 			
 			if ( ! $check ) {
 				self::addLabels( $data, $wgWikidataAdapterValues );
@@ -46,7 +46,7 @@ class WikidataAdapter {
 
 		return;
 	}
-
+	
 	private static function processQuery( $query, $vars ) {
 
 		$iter = 1;
@@ -63,7 +63,7 @@ class WikidataAdapter {
 		return $query;
 
 	}
-	
+		
 	private static function procesData( $url, $extended ) {
 		
 		global $wgLanguageCode; // Get language code of wiki
@@ -154,6 +154,13 @@ class WikidataAdapter {
 		return $data;
 	}
 
+	
+	// Trigger reloading URL
+	private static function checkTimestamp( $data, $entity, $limit ) {
+		
+		
+		
+	}
 
 	private static function removeNull ( $value ) {
 		
