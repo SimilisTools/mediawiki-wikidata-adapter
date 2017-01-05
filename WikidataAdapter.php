@@ -74,8 +74,11 @@ call_user_func( function() {
 			)
 		)
 	);
+	
+	$GLOBALS['wgHooks']['LoadExtensionSchemaUpdates'][] = 'WikidataAdapter::addTable';
 
 });
+
 
 function wfWikidataAdapterParserFunction_Setup( &$parser ) {
 	$parser->setFunctionHook( 'WikidataAdapter', 'WikidataAdapter::executeWikidataAdapterret', SFH_OBJECT_ARGS );

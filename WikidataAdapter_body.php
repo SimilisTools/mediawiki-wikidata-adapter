@@ -770,4 +770,17 @@ class WikidataAdapter {
 		$exp = floor(log($val, 10));
 		return sprintf('%.2fE%+03d', $val/pow(10,$exp), $exp);
 	}
+	
+	
+	public static function addTable( $updater ) {
+		$dbt = $updater->getDB()->getType();
+		$file = __DIR__ . "/sql/WikidataAdapter.$dbt";
+		if ( file_exists( $file ) ) {
+			$updater->addExtensionUpdate( array( 'addTable', 'wda', $file, true ) );
+		} else {
+			throw new MWException( "WikidataAdapter does not support $dbt." );
+		}
+		return true;
+	}
+	
 }
