@@ -8,6 +8,7 @@ class WikidataAdapter {
 			
 		global $wgWikidataAdapterExpose; // Take the configuration
 		global $wgWikidataAdapterValues; // What we do store
+		global $wgWikidataAdapterUpdateLimit; // Update limit time
 
 		$source = null;
 		$url = null;
@@ -17,31 +18,40 @@ class WikidataAdapter {
 			$source = trim( $frame->expand( $args[0] ) );
 
 			$vars = explode( ",", $source );
-					
-			if ( array_key_exists( "db", $wgWikidataAdapterExpose ) ) {
 
-				if ( array_key_exists( "url", $wgWikidataAdapterExpose["db"] ) ) {
-					$url = $wgWikidataAdapterExpose["db"]["url"];
+			if ( sizeof( $vars ) > 0 ) {
+					
+				if ( array_key_exists( "db", $wgWikidataAdapterExpose ) ) {
+	
+					if ( array_key_exists( "url", $wgWikidataAdapterExpose["db"] ) ) {
+						$url = $wgWikidataAdapterExpose["db"]["url"];
+					}
+					
+				}
+				
+				$url = self::processQuery( $url, $vars );
+				
+				$data = self::procesData( $url );
+		
+				if ( array_key_exists( $vars[0], $data ) ) {
+			
+					// Let's keep only first
+					$check = self::checkTimestamp( $data, $vars[0], $wgWikidataAdapterUpdateLimit );
+					
+					if ( ! $check ) {
+						self::addLabels( $data, $wgWikidataAdapterValues );
+						self::addRelations( $data, $wgWikidataAdapterValues );
+						self::addQualifiers( $data, $wgWikidataAdapterValues );
+					} else {
+						self::getLabels( $data, $wgWikidataAdapterValues );
+						self::getRelations( $data, $wgWikidataAdapterValues );
+						self::getQualifiers( $data, $wgWikidataAdapterValues );		
+					}
+					
 				}
 				
 			}
-			
-			$url = self::processQuery( $url, $vars );
-			
-			$data = self::procesData( $url );
-			
-			$check = self::checkTimestamp( $data );
-			
-			if ( ! $check ) {
-				self::addLabels( $data, $wgWikidataAdapterValues );
-				self::addRelations( $data, $wgWikidataAdapterValues );
-				self::addQualifiers( $data, $wgWikidataAdapterValues );
-			} else {
-				self::getLabels( $data, $wgWikidataAdapterValues );
-				self::getRelations( $data, $wgWikidataAdapterValues );
-				self::getQualifiers( $data, $wgWikidataAdapterValues );		
-			}
-			
+		
 		}
 
 		return;
@@ -156,12 +166,183 @@ class WikidataAdapter {
 
 	
 	// Trigger reloading URL
-	private static function checkTimestamp( $data, $entity, $limit ) {
+	private static function checkTimestamp( $data, $entity, $limit=10000000 ) {
 		
+		$timestamp = $data[$timestamp]["timestamp"];
 		
+		// Get data from Database
+		$entity = self::getDatabaseEntityLabel( $entity );
+
+		if ( $entity ) {
+			
+			if ( array_key_exists( "timestamp", $entity ) ) {
+				if ( $entity["timestamp"] != $timestamp ) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
 		
 	}
+	
+	private static function getDatabaseEntityLabel( $entity ) {
+		
+		
+		$dbr = wfGetDB( DB_SLAVE );
+		
+		$res = $dbr->select(
+			array( 'wda_labels' ),
+			array( 'wda_id', 'wda_label', 'wda_description', 'wda_label_local', 'wda_description_local', 'timestamp' ),
+			array(
+				'wda_id' => $entity
+			),
+			__METHOD__,
+			array( 'ORDER BY' => 'timestamp' )
+		);
+		
+		if ( sizeof( $res ) > 0 ) {
+			return $res[0];	
+		}
+		
+		return null;
+	}
+	
+	private static function getDatabaseEntityRelations( $entity ) {
+		
+		
+		$dbr = wfGetDB( DB_SLAVE );
+		
+		$res = $dbr->select(
+			array( 'wda_relations' ),
+			array( 'wda_id', 'wda_property', 'wda_value', 'wda_text', 'wda_order', 'wda_numrefs' ),
+			array(
+				'wda_id' => $entity
+			),
+			__METHOD__,
+			array( 'ORDER BY' => 'wda_property, wda_order' )
+		);
+		
+		if ( sizeof( $res ) > 0 ) {
+			return $res;	
+		}
 
+		return null;
+	}
+	
+	private static function getDatabaseEntityQualifiers( $entity ) {
+		
+		
+		$dbr = wfGetDB( DB_SLAVE );
+		
+		$res = $dbr->select(
+			array( 'wda_qualifiers' ),
+			array( 'wda_id', 'wda_property', 'wda_order', 'wda_qualifier', 'wda_qualifier_value', 'wda_qualifier_text' ),
+			array(
+				'wda_id' => $entity
+			),
+			__METHOD__,
+			array( 'ORDER BY' => 'wda_property, wda_order, wda_qualifier' )
+		);
+
+		if ( sizeof( $res ) > 0 ) {
+			return $res;	
+		}
+		
+		return null;
+	}
+	
+	private static function getLabels( $data, $values ) {
+		
+		$id = $data["wda_id"];
+		$values[ $id ] = array();
+		$values[ $id ]["label"] = $data["wda_label"];
+		$values[ $id ]["label_local"] = $data["wda_label_local"];
+		$values[ $id ]["description"] = $data["description"];
+		$values[ $id ]["description_local"] = $data["description_local"];
+		$values[ $id ]["timestamp"] = $data["timestamp"];
+
+		return $values;
+		
+	}
+	
+	private static function getRelations( $data, $values ) {
+		
+		$id = $data[0]["wda_id"];
+		$values[ $id ]["relations"] = array();
+		
+		foreach ( $data as $row ) {
+			
+			$property = $row["wda_property"];
+			$order = $row["wda_order"];
+			$numrefs = $row["wda_numrefs"];
+			
+			$value = $row["wda_value"];
+			$text = $row["wda_text"];
+			
+			
+			if ( ! array_key_exists( $property, $values[ $id ]["relations"] ) ) {
+				$values[ $id ]["relations"][$property] = array();
+			}
+			
+			// TODO: Handle value and text here
+			// Get property values
+			
+			$struct = array();
+			$struct["order"] = $order;
+
+			array_push( $values[ $id ]["relations"][$property], $struct );
+			
+		}
+
+		return $values;
+		
+	}
+	
+ 	private static function getQualifiers( $data, $values ) {
+		
+		$id = $data[0]["wda_id"];
+		
+		foreach ( $data as $row ) {
+	
+			$property = $row["wda_property"];
+			$order = $row["wda_order"];
+
+			$qualifier = $row["wda_qualifier"];
+			$qualifier_value = $row["wda_qualifier_value"];
+			$qualifier_text = $row["wda_qualifier_text"];
+			
+			
+			if ( ! array_key_exists( $property, $values[ $id ]["relations"] ) ) {
+				$values[ $id ]["relations"][$property] = array();
+			}
+			
+			if ( ! array_key_exists( $order, $values[ $id ]["relations"][$property] ) ) {
+				$values[ $id ]["relations"][$property][$order] = array();
+			}	
+			
+			if ( ! array_key_exists( "qualifiers", $values[ $id ]["relations"][$property][$order] ) ) {
+				$values[ $id ]["relations"][$property][$order]["qualifiers"] = array();
+			}	
+			
+			if ( ! array_key_exists( $qualifier, $values[ $id ]["relations"][$property][$order]["qualifiers"] ) ) {
+				$values[ $id ]["relations"][$property][$order]["qualifiers"][$qualifier] = array();
+			}	
+			
+			
+			// TODO: Handle value and text here
+			// Get property values
+			
+			$struct = array();
+
+			array_push( $values[ $id ]["relations"][$property][$order]["qualifiers"][$qualifier], $struct );
+			
+		}
+
+		return $values;
+		
+	}
+	
 	private static function removeNull ( $value ) {
 		
 		if ($value == "NULL") {

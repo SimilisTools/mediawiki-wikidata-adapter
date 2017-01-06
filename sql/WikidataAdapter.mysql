@@ -5,7 +5,11 @@ CREATE TABLE /*_*/wda_labels (
 	`wda_description` text not NULL default '',
 	`wda_label_local` varchar(120) not NULL default '',
 	`wda_description_local` text not NULL default '',
-	`wda_timestamp` datetime NOT NULL default '0000-00-00 00:00:00'
+	`wda_timestamp` datetime NOT NULL default '0000-00-00 00:00:00',
+	INDEX `wda_id` (`wda_id`),
+	INDEX `wda_label` (`wda_label`),
+	INDEX `wda_label_local` (`wda_label_local`),
+	PRIMARY KEY ( `wda_id` )
 ) /*$wgDBTableOptions*/;
 
 CREATE TABLE /*_*/wda_relations (
@@ -14,16 +18,25 @@ CREATE TABLE /*_*/wda_relations (
 	`wda_property` varchar(20) NOT NULL default '',
 	`wda_value` varchar(20) not NULL default '',
 	`wda_text` text not NULL default '',
-	`wda_order` int not NULL default 0,
+	`wda_order` int not NULL default 1,
 	`wda_numrefs` int not NULL default 0,
+	INDEX `wda_id` (`wda_id`),
+	INDEX `wda_property` (`wda_property`),
+	INDEX `wda_value` (`wda_value`),
+	PRIMARY KEY ( `wda_id`, `wda_property`, `wda_order` )
 ) /*$wgDBTableOptions*/;
 
 CREATE TABLE /*_*/wda_qualifiers (
 
 	`wda_id` varchar(20) NOT NULL default '',
 	`wda_property` varchar(20) NOT NULL default '',
-	`wda_order` int not NULL default 0,
+	`wda_order` int not NULL default 1,
 	`wda_qualifier` varchar(20) NOT NULL default '',
 	`wda_qualifier_value` varchar(20) not NULL default '',
 	`wda_qualifier_text` text not NULL default '',
+	INDEX `wda_id` (`wda_id`),
+	INDEX `wda_property` (`wda_property`),
+	INDEX `wda_qualifier` (`wda_qualifier`),
+	INDEX `wda_qualifier_value` (`wda_qualifier_value`),
+	PRIMARY KEY ( `wda_id`, `wda_property`, `wda_order`, `wda_qualifier` )
 ) /*$wgDBTableOptions*/;
