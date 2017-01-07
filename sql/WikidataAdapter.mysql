@@ -34,9 +34,10 @@ CREATE TABLE /*_*/wda_qualifiers (
 	`wda_qualifier` varchar(20) NOT NULL default '',
 	`wda_qualifier_value` varchar(20) not NULL default '',
 	`wda_qualifier_text` text not NULL default '',
+	`wda_qualifier_order` int not NULL default 1,
 	INDEX `wda_id` (`wda_id`),
 	INDEX `wda_property` (`wda_property`),
 	INDEX `wda_qualifier` (`wda_qualifier`),
 	INDEX `wda_qualifier_value` (`wda_qualifier_value`),
-	PRIMARY KEY ( `wda_id`, `wda_property`, `wda_order`, `wda_qualifier` )
+	PRIMARY KEY ( `wda_id`, `wda_property`, `wda_order`, `wda_qualifier`, `wda_qualifier_order` )
 ) /*$wgDBTableOptions*/;
