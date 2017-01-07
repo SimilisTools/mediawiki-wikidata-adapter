@@ -6,7 +6,6 @@ class WikidataAdapter {
 
 	public static function executeWikidataAdapterret ( $parser, $frame, $args ) {
 			
-		global $wgWikidataAdapterExpose; // Take the configuration
 		global $wgWikidataAdapterValues; // What we do store
 		global $wgWikidataAdapterUpdateLimit; // Update limit time
 
@@ -21,15 +20,7 @@ class WikidataAdapter {
 
 			if ( sizeof( $vars ) > 0 ) {
 					
-				if ( array_key_exists( "db", $wgWikidataAdapterExpose ) ) {
-	
-					if ( array_key_exists( "url", $wgWikidataAdapterExpose["db"] ) ) {
-						$url = $wgWikidataAdapterExpose["db"]["url"];
-					}
-					
-				}
-				
-				$url = self::processQuery( $url, $vars );
+				$url = self::createURL( $vars );
 				
 				$data = self::procesData( $url );
 		
@@ -55,6 +46,32 @@ class WikidataAdapter {
 		}
 
 		return;
+	}
+	
+	private static function createURL( $entity ) {
+		global $wgWikidataAdapterExpose; // Take the configuration
+		
+		$url = null;
+		$vars = array();
+		
+		if ( array_key_exists( "db", $wgWikidataAdapterExpose ) ) {
+	
+			if ( array_key_exists( "url", $wgWikidataAdapterExpose["db"] ) ) {
+				$url = $wgWikidataAdapterExpose["db"]["url"];
+			}
+			
+		}
+		
+		if ( ! is_array( $entity ) ) {
+			array_push( $vars, $entity );
+		} else {
+			$vars = $entity;
+		}
+		
+		$url = self::processQuery( $url, $vars );
+		
+		return $url;
+		
 	}
 	
 	private static function processQuery( $query, $vars ) {
@@ -138,10 +155,83 @@ class WikidataAdapter {
 								
 								$data[$entity["id"]]["relations"][$keyclaim] = array();
 								
+								$order = 1;
 								foreach ( $claims as $claim ) {
+									
+									array_push( $data[$entity["id"]]["relations"][$keyclaim], array() );
+									
 									if ( property_exists( $claim, "mainsnak" ) ) {
-										// Continue inside
+										
+										$mainsnak = $claim["mainsnak"];
+										
+										if ( property_exists( $mainsnak, "snaktype" ) && $mainsnak["snaktype"] === "value" ) {
+											
+											$datatype = null;
+											
+											if ( property_exists( $mainsnak, "datatype" ) ) {
+												$datatype = $mainsnak["datatype"];
+											}
+											
+											if ( property_exists( $mainsnak, "datavalue" ) ) {
+												
+												$outValue = self::processDataValue( $mainsnak["datavalue"], $datatype );
+												// Continue inside
+												
+												$type = $outValue[0];
+												$value = $outValue[1];
+												$text = $outValue[2];
+												
+												$struct = array();
+												$struct["order"] = $order;
+												$struct["datatype"] = $datatype;
+												$struct["value"] = $value;
+												$struct["text"] = $text;
+												
+											}
+
+										}
+										
 									}
+									if ( property_exists( $claim, "qualifiers" ) ) {
+										
+										$qualifiers = $claim["qualifiers"];
+										
+										$data[$entity["id"]]["relations"][$keyclaim][$order - 1]["qualifiers"] = array();
+										
+										foreach ( $qualifiers as $qualifier => $qualifierInfo ) {
+											
+											$data[$entity["id"]]["relations"][$keyclaim][$order - 1]["qualifiers"][$qualifier] = array();
+											
+											$datatype = null;
+											
+											if ( property_exists( $qualifierInfo, "datatype" ) ) {
+												$datatype = $qualifierInfo["datatype"];
+											}
+											
+											if ( property_exists( $qualifierInfo, "datavalue" ) ) {
+												
+												$outValue = self::processDataValue( $mainsnak["datavalue"], $datatype );
+												// Continue inside
+												
+												$type = $outValue[0];
+												$value = $outValue[1];
+												$text = $outValue[2];
+												
+												$struct = array();
+												$struct["order"] = $order;
+												$struct["datatype"] = $datatype;
+												$struct["value"] = $value;
+												$struct["text"] = $text;
+												
+											}
+											
+										}
+										
+									}
+
+									
+									
+									$order++;
 								}
 								
 							}
@@ -155,13 +245,53 @@ class WikidataAdapter {
 			}
 		}
 		
-		
-		// Get all the diffeent relations
-		
 			// For each relation the qualifiers
 		
 		
 		return $data;
+	}
+	
+	/** Process datavalue **/
+	private static function processDataValue( $dataValue, $datatype ) {
+		
+		$outValue = array();
+		
+		if ( $datatype === "wikibase-item" ) {
+			
+			// Process again
+			$type = $dataValue["type"];
+			
+			$preValue =  $dataValue["value"];
+			
+			if ( property_exists( $preValue, "id" ) ) {
+				$value =  $preValue[$id];
+			}
+
+			// First we should retrieve from DB :O
+			
+			// If in Database
+			
+			
+			//Else
+			
+			$url = self::createURL( $value );
+			$labelData = self::processData( $url, false );
+			// Send into MySQL
+			
+			
+			$text = $labelData[$id]["label"];
+			
+			$outValue = array( $type, $value, $text );
+			
+		} else {
+			$type = $dataValue["type"];
+			$text = $dataValue["value"];
+
+			$outValue = array( $type, "", $text );
+		}
+		
+		return $outValue;
+		
 	}
 
 	
