@@ -282,7 +282,7 @@ class WikidataAdapter {
 				// Send into MySQL
 				
 				
-				$text = $labelData[$id]["label"];
+				$text = $labelData["id"]["label"];
 				
 				$outValue = array( $type, $value, $text );
 			
