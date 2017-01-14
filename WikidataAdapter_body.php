@@ -203,11 +203,17 @@ class WikidataAdapter {
 											
 											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = array();
 											
+											$url = self::createURL( $qualifier );
+											$labelData = self::processData( $url, false );
+											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = $labelData;
+											
+											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier]["values"] = array();
+											
 											$qorder = 1;
 											
 											foreach ( $qualifierArray as $qualifierInfo ) {
 												
-												array_push( $data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier], array() );
+												array_push( $data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier]["values"], array() );
 											
 												if ( array_key_exists( "snaktype", $qualifierInfo ) && $qualifierInfo["snaktype"] === "value" ) {
 													
@@ -232,7 +238,7 @@ class WikidataAdapter {
 														$struct["value"] = $value;
 														$struct["text"] = $text;
 														
-														$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier][$qorder - 1] = $struct;
+														$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier]["values"][$qorder - 1] = $struct;
 													}
 													
 												}
