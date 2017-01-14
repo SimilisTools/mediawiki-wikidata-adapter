@@ -22,6 +22,7 @@ class WikidataAdapter {
 					
 				$url = self::createURL( $vars );
 				
+				echo $url."<br />";
 				$data = self::processData( $url, true );
 				
 				var_dump( $data );
@@ -257,6 +258,8 @@ class WikidataAdapter {
 			// Process again
 			$type = $dataValue["type"];
 			
+			$value = "";
+			
 			$preValue =  $dataValue["value"];
 			
 			if ( array_key_exists( "id", $preValue ) ) {
@@ -269,15 +272,21 @@ class WikidataAdapter {
 			
 			
 			//Else
+			if ( !empty( $value ) ) {
+				
+				$url = self::createURL( $value );
+				
+				echo $url."<br />";
+				
+				$labelData = self::processData( $url, false );
+				// Send into MySQL
+				
+				
+				$text = $labelData[$id]["label"];
+				
+				$outValue = array( $type, $value, $text );
 			
-			$url = self::createURL( $value );
-			$labelData = self::processData( $url, false );
-			// Send into MySQL
-			
-			
-			$text = $labelData[$id]["label"];
-			
-			$outValue = array( $type, $value, $text );
+			}
 			
 		} else {
 			$type = $dataValue["type"];
