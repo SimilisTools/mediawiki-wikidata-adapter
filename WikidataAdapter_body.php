@@ -153,7 +153,7 @@ class WikidataAdapter {
 								$labelData = self::processData( $url, false );
 								
 								$data[$entity["id"]]["relations"][$keyclaim] = array();
-								$data[$entity["id"]]["relations"][$keyclaim] = $labelData;
+								$data[$entity["id"]]["relations"][$keyclaim] = $labelData[$keyclaim];
 								$data[$entity["id"]]["relations"][$keyclaim]["values"] = array();
 
 								$order = 1;
@@ -205,7 +205,8 @@ class WikidataAdapter {
 											
 											$url = self::createURL( $qualifier );
 											$labelData = self::processData( $url, false );
-											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = $labelData;
+											
+											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = $labelData[$qualifier];
 											
 											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier]["values"] = array();
 											
