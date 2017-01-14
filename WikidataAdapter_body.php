@@ -23,6 +23,8 @@ class WikidataAdapter {
 				$url = self::createURL( $vars );
 				
 				$data = self::processData( $url );
+				
+				var_dump( $data );
 		
 				if ( array_key_exists( $vars[0], $data ) ) {
 			
@@ -331,8 +333,8 @@ class WikidataAdapter {
 			array( 'ORDER BY' => 'wda_timestamp' )
 		);
 		
-		if ( sizeof( $res ) > 0 ) {
-			return $res[0];	
+		if ( $res->numRows > 0 ) {
+			return $res->fetchRow;	
 		}
 		
 		return null;
@@ -353,8 +355,8 @@ class WikidataAdapter {
 			array( 'ORDER BY' => 'wda_property, wda_order' )
 		);
 		
-		if ( sizeof( $res ) > 0 ) {
-			return $res;	
+		if ( $res->numRows > 0 ) {
+			return $res; // TODO: Decide if handle in array or not
 		}
 
 		return null;
@@ -375,8 +377,8 @@ class WikidataAdapter {
 			array( 'ORDER BY' => 'wda_property, wda_order, wda_qualifier' )
 		);
 
-		if ( sizeof( $res ) > 0 ) {
-			return $res;	
+		if ( $res->numRows > 0 ) {
+			return $res; // TODO: Decide if handle in array or not
 		}
 		
 		return null;
