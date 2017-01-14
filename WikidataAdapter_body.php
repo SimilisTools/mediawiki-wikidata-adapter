@@ -282,7 +282,7 @@ class WikidataAdapter {
 				// Send into MySQL
 				
 				
-				$text = $labelData["label"];
+				$text = self::retrievePropertyFromEntity( $labelData, $value, "label" );
 				
 				$outValue = array( $type, $value, $text );
 			
@@ -296,6 +296,22 @@ class WikidataAdapter {
 		}
 		
 		return $outValue;
+		
+	}
+	
+	// TODO: Check if needed later
+	private static function retrievePropertyFromEntity( $data, $id, $property ) {
+		
+		$value = "";
+		
+		// TODO: Handling more complex properties?
+		if ( array_key_exists( $id, $data ) ) {
+			if ( array_key_exists( $property, $data[$id] ) ) {
+				$value =  $data[$id][$property];
+			}
+		}
+		
+		return $value;
 		
 	}
 
