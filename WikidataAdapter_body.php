@@ -30,11 +30,11 @@ class WikidataAdapter {
 				if ( array_key_exists( $vars[0], $data ) ) {
 			
 					// Let's keep only first
-					$check = self::checkTimestamp( $data, $vars[0], $wgWikidataAdapterUpdateLimit );
-					
-					self::getOrAddLabels( $data, $wgWikidataAdapterValues, $check );
-					self::getOrAddRelations( $data, $wgWikidataAdapterValues, $check );
-					self::getOrAddQualifiers( $data, $wgWikidataAdapterValues, $check );
+					//$check = self::checkTimestamp( $data, $vars[0], $wgWikidataAdapterUpdateLimit );
+					//
+					//self::getOrAddLabels( $data, $wgWikidataAdapterValues, $check );
+					//self::getOrAddRelations( $data, $wgWikidataAdapterValues, $check );
+					//self::getOrAddQualifiers( $data, $wgWikidataAdapterValues, $check );
 					
 				}
 				
@@ -263,7 +263,7 @@ class WikidataAdapter {
 			$preValue =  $dataValue["value"];
 			
 			if ( array_key_exists( "id", $preValue ) ) {
-				$value =  $preValue[$id];
+				$value =  $preValue["id"];
 			}
 
 			// First we should retrieve from DB :O
