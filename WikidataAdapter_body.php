@@ -31,15 +31,9 @@ class WikidataAdapter {
 					// Let's keep only first
 					$check = self::checkTimestamp( $data, $vars[0], $wgWikidataAdapterUpdateLimit );
 					
-					if ( ! $check ) {
-						self::addLabels( $data, $wgWikidataAdapterValues );
-						self::addRelations( $data, $wgWikidataAdapterValues );
-						self::addQualifiers( $data, $wgWikidataAdapterValues );
-					} else {
-						self::getLabels( $data, $wgWikidataAdapterValues );
-						self::getRelations( $data, $wgWikidataAdapterValues );
-						self::getQualifiers( $data, $wgWikidataAdapterValues );		
-					}
+					self::getOrAddLabels( $data, $wgWikidataAdapterValues, $check );
+					self::getOrAddRelations( $data, $wgWikidataAdapterValues, $check );
+					self::getOrAddQualifiers( $data, $wgWikidataAdapterValues, $check );
 					
 				}
 				
@@ -333,8 +327,8 @@ class WikidataAdapter {
 			array( 'ORDER BY' => 'wda_timestamp' )
 		);
 		
-		if ( $res->numRows > 0 ) {
-			return $res->fetchRow;	
+		if ( $res->numRows() > 0 ) {
+			return $res->fetchRow();	
 		}
 		
 		return null;
@@ -355,7 +349,7 @@ class WikidataAdapter {
 			array( 'ORDER BY' => 'wda_property, wda_order' )
 		);
 		
-		if ( $res->numRows > 0 ) {
+		if ( $res->numRows() > 0 ) {
 			return $res; // TODO: Decide if handle in array or not
 		}
 
@@ -377,14 +371,14 @@ class WikidataAdapter {
 			array( 'ORDER BY' => 'wda_property, wda_order, wda_qualifier' )
 		);
 
-		if ( $res->numRows > 0 ) {
+		if ( $res->numRows() > 0 ) {
 			return $res; // TODO: Decide if handle in array or not
 		}
 		
 		return null;
 	}
 	
-	private static function getLabels( $data, $values ) {
+	private static function getOrAddLabels( $data, $values, $check=false ) {
 		
 		$id = $data["wda_id"];
 		$values[ $id ] = array();
@@ -398,7 +392,7 @@ class WikidataAdapter {
 		
 	}
 	
-	private static function getRelations( $data, $values ) {
+	private static function getOrAddRelations( $data, $values, $check=false ) {
 		
 		$id = $data[0]["wda_id"];
 		$values[ $id ]["relations"] = array();
@@ -431,7 +425,7 @@ class WikidataAdapter {
 		
 	}
 	
- 	private static function getQualifiers( $data, $values ) {
+ 	private static function getOrAddQualifiers( $data, $values, $check=false ) {
 		
 		$id = $data[0]["wda_id"];
 		
