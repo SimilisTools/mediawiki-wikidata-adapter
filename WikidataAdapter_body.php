@@ -22,7 +22,6 @@ class WikidataAdapter {
 					
 				$url = self::createURL( $vars );
 				
-				echo $url."<br />";
 				$data = self::processData( $url, true );
 				
 				var_dump( $data );
@@ -198,11 +197,11 @@ class WikidataAdapter {
 										
 										$qualifiers = $claim["qualifiers"];
 										
-										$data[$entity["id"]]["relations"][$keyclaim][$order - 1]["qualifiers"] = array();
+										$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"] = array();
 										
 										foreach ( $qualifiers as $qualifier => $qualifierInfo ) {
 											
-											$data[$entity["id"]]["relations"][$keyclaim][$order - 1]["qualifiers"][$qualifier] = array();
+											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = array();
 											
 											$datatype = null;
 											
@@ -225,6 +224,7 @@ class WikidataAdapter {
 												$struct["value"] = $value;
 												$struct["text"] = $text;
 												
+												$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = $struct;
 											}
 											
 										}
