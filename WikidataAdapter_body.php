@@ -150,12 +150,17 @@ class WikidataAdapter {
 							
 							foreach ( $entity["claims"] as $keyclaim => $claims ) {
 								
-								$data[$entity["id"]]["relations"][$keyclaim] = array();
+								$url = self::createURL( $keyclaim );
+								$labelData = self::processData( $url, false );
 								
+								$data[$entity["id"]]["relations"][$keyclaim] = array();
+								$data[$entity["id"]]["relations"][$keyclaim] = $labelData;
+								$data[$entity["id"]]["relations"][$keyclaim]["values"] = array();
+
 								$order = 1;
 								foreach ( $claims as $claim ) {
 									
-									array_push( $data[$entity["id"]]["relations"][$keyclaim], array() );
+									array_push( $data[$entity["id"]]["relations"][$keyclaim]["values"], array() );
 									
 									if ( array_key_exists( "mainsnak", $claim ) ) {
 										
@@ -183,7 +188,7 @@ class WikidataAdapter {
 												$struct["datatype"] = $datatype;
 												$struct["value"] = $value;
 												$struct["text"] = $text;
-												
+												$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1] = $struct;
 											}
 
 										}
@@ -275,9 +280,7 @@ class WikidataAdapter {
 			if ( !empty( $value ) ) {
 				
 				$url = self::createURL( $value );
-				
-				echo $url."<br />";
-				
+								
 				$labelData = self::processData( $url, false );
 				// Send into MySQL
 				
