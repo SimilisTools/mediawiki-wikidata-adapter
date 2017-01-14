@@ -22,7 +22,7 @@ class WikidataAdapter {
 					
 				$url = self::createURL( $vars );
 				
-				$data = self::procesData( $url );
+				$data = self::processData( $url );
 		
 				if ( array_key_exists( $vars[0], $data ) ) {
 			
@@ -91,7 +91,7 @@ class WikidataAdapter {
 
 	}
 		
-	private static function procesData( $url, $extended ) {
+	private static function processData( $url, $extended ) {
 		
 		global $wgLanguageCode; // Get language code of wiki
 		$defaultLanguageCode = "en"; // Let's put harcoded default English
@@ -305,8 +305,8 @@ class WikidataAdapter {
 
 		if ( $entity ) {
 			
-			if ( array_key_exists( "timestamp", $entity ) ) {
-				if ( $entity["timestamp"] != $timestamp ) {
+			if ( array_key_exists( "wda_timestamp", $entity ) ) {
+				if ( $entity["wda_timestamp"] != $timestamp ) {
 					return true;
 				}
 			}
@@ -323,12 +323,12 @@ class WikidataAdapter {
 		
 		$res = $dbr->select(
 			array( 'wda_labels' ),
-			array( 'wda_id', 'wda_label', 'wda_description', 'wda_label_local', 'wda_description_local', 'timestamp' ),
+			array( 'wda_id', 'wda_label', 'wda_description', 'wda_label_local', 'wda_description_local', 'wda_timestamp' ),
 			array(
 				'wda_id' => $entity
 			),
 			__METHOD__,
-			array( 'ORDER BY' => 'timestamp' )
+			array( 'ORDER BY' => 'wda_timestamp' )
 		);
 		
 		if ( sizeof( $res ) > 0 ) {
