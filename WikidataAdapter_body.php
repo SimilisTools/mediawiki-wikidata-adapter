@@ -199,34 +199,47 @@ class WikidataAdapter {
 										
 										$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"] = array();
 										
-										foreach ( $qualifiers as $qualifier => $qualifierInfo ) {
+										foreach ( $qualifiers as $qualifier => $qualifierArray ) {
 											
 											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = array();
 											
-											$datatype = null;
+											$qorder = 1;
 											
-											if ( array_key_exists( "datatype", $qualifierInfo ) ) {
-												$datatype = $qualifierInfo["datatype"];
+											foreach ( $qualifierArray as $qualifierInfo ) {
+												
+												array_push( $data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier], array() );
+											
+												if ( array_key_exists( "snaktype", $qualifierInfo ) && $qualifierInfo["snaktype"] === "value" ) {
+													
+													$datatype = null;
+													
+													if ( array_key_exists( "datatype", $qualifierInfo ) ) {
+														$datatype = $qualifierInfo["datatype"];
+													}
+													
+													if ( array_key_exists( "datavalue", $qualifierInfo ) ) {
+														
+														$outValue = self::processDataValue( $qualifierInfo["datavalue"], $datatype );
+														// Continue inside
+														
+														$type = $outValue[0];
+														$value = $outValue[1];
+														$text = $outValue[2];
+														
+														$struct = array();
+														$struct["order"] = $qorder;
+														$struct["datatype"] = $datatype;
+														$struct["value"] = $value;
+														$struct["text"] = $text;
+														
+														$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier][$qorder - 1] = $struct;
+													}
+													
+												}
+												
+												$qorder++;
+											
 											}
-											
-											if ( array_key_exists( "datavalue", $qualifierInfo ) ) {
-												
-												$outValue = self::processDataValue( $mainsnak["datavalue"], $datatype );
-												// Continue inside
-												
-												$type = $outValue[0];
-												$value = $outValue[1];
-												$text = $outValue[2];
-												
-												$struct = array();
-												$struct["order"] = $order;
-												$struct["datatype"] = $datatype;
-												$struct["value"] = $value;
-												$struct["text"] = $text;
-												
-												$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = $struct;
-											}
-											
 										}
 										
 									}
