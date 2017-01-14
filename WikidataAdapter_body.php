@@ -22,7 +22,7 @@ class WikidataAdapter {
 					
 				$url = self::createURL( $vars );
 				
-				$data = self::processData( $url );
+				$data = self::processData( $url, true );
 				
 				var_dump( $data );
 		
@@ -87,7 +87,7 @@ class WikidataAdapter {
 
 	}
 		
-	private static function processData( $url, $extended ) {
+	private static function processData( $url, $extended=false ) {
 		
 		global $wgLanguageCode; // Get language code of wiki
 		$defaultLanguageCode = "en"; // Let's put harcoded default English
