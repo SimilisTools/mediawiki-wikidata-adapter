@@ -104,17 +104,17 @@ class WikidataAdapter {
 
 		// Get label and description
 		
-		if ( array_key_exists( $obj, "entities" ) ) {
+		if ( array_key_exists( "entities", $obj ) ) {
 			foreach ( $obj['entities'] as $entity ) {
 				
-				if (  array_key_exists( $entity, "id" ) ) {
+				if (  array_key_exists( "id", $entity ) ) {
 					$data[$entity["id"]] = array();
 					
-					if (  array_key_exists( $entity, "modified" ) ) {
+					if (  array_key_exists( "modified",  $entity ) ) {
 						$data[$entity["id"]]["timestamp"] = $entity["modified"];
 					}
 					
-					if (  array_key_exists( $entity, "labels" ) ) {
+					if (  array_key_exists( "labels", $entity ) ) {
 					
 						foreach ( $entity["labels"] as $keylabel => $label ) {
 
@@ -129,7 +129,7 @@ class WikidataAdapter {
 						}
 					}
 					
-					if ( array_key_exists( $entity, "descriptions" ) ) {
+					if ( array_key_exists( "descriptions", $entity ) ) {
 
 						foreach ( $entity["descriptions"] as $keylabel => $label ) {
 
@@ -147,7 +147,7 @@ class WikidataAdapter {
 					
 					if ( $extended ) {
 					
-						if ( array_key_exists( $entity, "claims" ) ) {
+						if ( array_key_exists( "claims", $entity ) ) {
 							
 							$data[$entity["id"]]["relations"] = array();
 							
@@ -160,19 +160,19 @@ class WikidataAdapter {
 									
 									array_push( $data[$entity["id"]]["relations"][$keyclaim], array() );
 									
-									if ( array_key_exists( $claim, "mainsnak" ) ) {
+									if ( array_key_exists( "mainsnak", $claim ) ) {
 										
 										$mainsnak = $claim["mainsnak"];
 										
-										if ( array_key_exists( $mainsnak, "snaktype" ) && $mainsnak["snaktype"] === "value" ) {
+										if ( array_key_exists( "snaktype", $mainsnak ) && $mainsnak["snaktype"] === "value" ) {
 											
 											$datatype = null;
 											
-											if ( array_key_exists( $mainsnak, "datatype" ) ) {
+											if ( array_key_exists( "datatype", $mainsnak ) ) {
 												$datatype = $mainsnak["datatype"];
 											}
 											
-											if ( array_key_exists( $mainsnak, "datavalue" ) ) {
+											if ( array_key_exists( "datavalue", $mainsnak ) ) {
 												
 												$outValue = self::processDataValue( $mainsnak["datavalue"], $datatype );
 												// Continue inside
@@ -192,7 +192,7 @@ class WikidataAdapter {
 										}
 										
 									}
-									if ( array_key_exists( $claim, "qualifiers" ) ) {
+									if ( array_key_exists( "qualifiers", $claim ) ) {
 										
 										$qualifiers = $claim["qualifiers"];
 										
@@ -204,11 +204,11 @@ class WikidataAdapter {
 											
 											$datatype = null;
 											
-											if ( array_key_exists( $qualifierInfo, "datatype" ) ) {
+											if ( array_key_exists( "datatype", $qualifierInfo ) ) {
 												$datatype = $qualifierInfo["datatype"];
 											}
 											
-											if ( array_key_exists( $qualifierInfo, "datavalue" ) ) {
+											if ( array_key_exists( "datavalue", $qualifierInfo ) ) {
 												
 												$outValue = self::processDataValue( $mainsnak["datavalue"], $datatype );
 												// Continue inside
@@ -263,7 +263,7 @@ class WikidataAdapter {
 			
 			$preValue =  $dataValue["value"];
 			
-			if ( array_key_exists( $preValue, "id" ) ) {
+			if ( array_key_exists( "id", $preValue ) ) {
 				$value =  $preValue[$id];
 			}
 
