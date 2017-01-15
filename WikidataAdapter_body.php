@@ -21,10 +21,8 @@ class WikidataAdapter {
 				
 				foreach ( $vars as $var ) {
 				
-					$data = self::retrieveData( $url, true );
-					
-					var_dump( $data );
-			
+					$data = self::retrieveData( $var, true );
+								
 					if ( array_key_exists( $var, $data ) ) {
 				
 						if ( ! is_array( $wgWikidataAdapterValues ) ) {
