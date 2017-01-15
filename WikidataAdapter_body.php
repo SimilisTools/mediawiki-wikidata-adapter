@@ -7,7 +7,6 @@ class WikidataAdapter {
 	public static function executeWikidataAdapterret ( $parser, $frame, $args ) {
 			
 		global $wgWikidataAdapterValues; // What we do store
-		global $wgWikidataAdapterUpdateLimit; // Update limit time
 
 		$source = null;
 		$url = null;
@@ -19,22 +18,23 @@ class WikidataAdapter {
 			$vars = explode( ",", $source );
 
 			if ( sizeof( $vars ) > 0 ) {
+				
+				foreach ( $vars as $var ) {
+				
+					$data = self::retrieveData( $url, true );
 					
-				$url = self::createURL( $vars );
-				
-				$data = self::processData( $url, true );
-				
-				var_dump( $data );
-		
-				if ( array_key_exists( $vars[0], $data ) ) {
+					var_dump( $data );
 			
-					// Let's keep only first
-					//$check = self::checkTimestamp( $data, $vars[0], $wgWikidataAdapterUpdateLimit );
-					//
-					//self::getOrAddLabels( $data, $wgWikidataAdapterValues, $check );
-					//self::getOrAddRelations( $data, $wgWikidataAdapterValues, $check );
-					//self::getOrAddQualifiers( $data, $wgWikidataAdapterValues, $check );
-					
+					if ( array_key_exists( $var, $data ) ) {
+				
+						if ( ! is_array( $wgWikidataAdapterValues ) ) {
+							$wgWikidataAdapterValues = array();
+						}
+						
+						$wgWikidataAdapterValues[$var] = $data[$var];
+						
+					}
+				
 				}
 				
 			}
@@ -42,6 +42,19 @@ class WikidataAdapter {
 		}
 
 		return;
+	}
+	
+	private static function retrieveData( $var, $type=false ) {
+		
+		global $wgWikidataAdapterUpdateLimit; // Update limit time
+
+		$url = self::createURL( $var );
+		$data = self::processData( $url, $type );
+		
+		// Send to MySQL
+		
+		return $data;
+		
 	}
 	
 	private static function createURL( $entity ) {
@@ -149,8 +162,7 @@ class WikidataAdapter {
 							
 							foreach ( $entity["claims"] as $keyclaim => $claims ) {
 								
-								$url = self::createURL( $keyclaim );
-								$labelData = self::processData( $url, false );
+								$labelData = self::retrieveData( $keyclaim, false );
 								
 								$data[$entity["id"]]["relations"][$keyclaim] = array();
 								$data[$entity["id"]]["relations"][$keyclaim] = $labelData[$keyclaim];
@@ -203,8 +215,7 @@ class WikidataAdapter {
 											
 											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = array();
 											
-											$url = self::createURL( $qualifier );
-											$labelData = self::processData( $url, false );
+											$labelData = self::retrieveData( $qualifier, false );
 											
 											$data[$entity["id"]]["relations"][$keyclaim]["values"][$order - 1]["qualifiers"][$qualifier] = $labelData[$qualifier];
 											
@@ -291,19 +302,11 @@ class WikidataAdapter {
 				$value =  $preValue["id"];
 			}
 
-			// First we should retrieve from DB :O
-			
-			// If in Database
-			
 			
 			//Else
 			if ( !empty( $value ) ) {
-				
-				$url = self::createURL( $value );
-								
-				$labelData = self::processData( $url, false );
-				// Send into MySQL
-				
+												
+				$labelData = self::retrieveData( $value, false );				
 				
 				$text = self::retrievePropertyFromEntity( $labelData, $value, "label" );
 				
@@ -539,29 +542,41 @@ class WikidataAdapter {
 
 		if ( isset( $args[0] ) && !empty( $args[0] ) ) {
 			$var = trim( $frame->expand( $args[0] ) );
+			
+			if ( isset( $args[1] ) && !empty( $args[1] ) ) {
+				
+				$prop = trim( $frame->expand( $args[1] ) );
+				
+				$sep = ",";
+				if ( isset( $args[2] ) && !empty( $args[2] ) ) {
+					$sep = trim( $frame->expand( $args[2] ) );
+				}
+				
+				$values = array();
+	
+				foreach ( $wgWikidataAdapterValues as $entry ) {
+	
+					if ( array_key_exists( $var, $entry ) ) {
 
-			$values = array();
-
-			foreach ( $wgWikidataAdapterValues as $entry ) {
-
-				if ( array_key_exists( $var, $entry ) ) {
-					if ( !empty( $entry[$var] ) ) {
-						array_push( $values, $entry[$var] );
+						if ( array_key_exists( "relations", $entry[$var] ) ) {
+							
+							if ( array_key_exists( $prop, $entry[$var]["relations"] ) ) {
+							
+							
+								if ( array_key_exists( "values", $entry[$var]["relations"][$prop] ) ) {
+									$values = self::formatValues( $entry[$var]["relations"][$prop]["values"] );
+								}
+							
+							}
+							
+							// TODO alternative retrievals, instead of code, by label
+							
+						}
 					}
 				}
-			}
-			$output = implode( "*", $values );
-
-			if ( $output == "" && isset( $args[1] ) && !empty( $args[1] ) ) {
-				$output = trim( $frame->expand( $args[1] ) );
-			}
-
-			if ( !empty($output) && isset( $args[2] ) && !empty( $args[2] ) ) {
-				$formatted = trim( $frame->expand( $args[2] ) );
-
-				$formatted_output = str_replace( "#P1", $output, $formatted ) ;
-
-				$output = $formatted_output;
+				
+				$output = implode( $sep, $values );
+				
 			}
 
 		}
@@ -570,6 +585,18 @@ class WikidataAdapter {
 		#return $parser->insertStripItem( $output, $parser->mStripState );
 	}
 
+
+
+	private static function formatValues( $values ) {
+		
+		// TODO Temp
+		$array = array();
+		
+		array_push( $aray, json_encode( $values ) ) ;
+		
+		return $aray;
+		
+	}
 
 	/**
 	 * Get the specified index of the array for the specified local
