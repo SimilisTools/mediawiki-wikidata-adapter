@@ -551,27 +551,25 @@ class WikidataAdapter {
 				}
 				
 				$values = array();
-	
-				foreach ( $wgWikidataAdapterValues as $entry ) {
-	
-					if ( array_key_exists( $var, $entry ) ) {
+		
+				if ( array_key_exists( $var, $wgWikidataAdapterValues ) ) {
 
-						if ( array_key_exists( "relations", $entry[$var] ) ) {
-							
-							if ( array_key_exists( $prop, $entry[$var]["relations"] ) ) {
-							
-							
-								if ( array_key_exists( "values", $entry[$var]["relations"][$prop] ) ) {
-									$values = self::formatValues( $entry[$var]["relations"][$prop]["values"] );
-								}
-							
+					if ( array_key_exists( "relations", $wgWikidataAdapterValues[$var] ) ) {
+						
+						if ( array_key_exists( $prop, $wgWikidataAdapterValues[$var]["relations"] ) ) {
+						
+						
+							if ( array_key_exists( "values", $wgWikidataAdapterValues[$var]["relations"][$prop] ) ) {
+								$values = self::formatValues( $wgWikidataAdapterValues[$var]["relations"][$prop]["values"] );
 							}
-							
-							// TODO alternative retrievals, instead of code, by label
-							
+						
 						}
+						
+						// TODO alternative retrievals, instead of code, by label
+						
 					}
 				}
+				
 				
 				$output = implode( $sep, $values );
 				
