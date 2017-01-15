@@ -306,7 +306,10 @@ class WikidataAdapter {
 												
 				$labelData = self::retrieveData( $value, false );				
 				
-				$text = self::retrievePropertyFromEntity( $labelData, $value, "label" );
+				$text = self::retrievePropertyFromEntity( $labelData, $value, "label_local" );
+				if ( ! $text || empty( $text ) ) {
+					$text = self::retrievePropertyFromEntity( $labelData, $value, "label" );
+				}
 				
 				$outValue = array( $type, $value, $text );
 			
