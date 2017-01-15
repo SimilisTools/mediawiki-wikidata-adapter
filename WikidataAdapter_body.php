@@ -588,9 +588,9 @@ class WikidataAdapter {
 		// TODO Temp
 		$array = array();
 		
-		array_push( $aray, json_encode( $values ) ) ;
+		array_push( $array, json_encode( $values ) ) ;
 		
-		return $aray;
+		return $array;
 		
 	}
 
