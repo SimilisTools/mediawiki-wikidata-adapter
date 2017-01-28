@@ -588,10 +588,51 @@ class WikidataAdapter {
 
 	private static function formatValues( $values ) {
 		
-		// TODO Temp
+		// TODO More flexible separator
+		$sep = ",";
+		
 		$array = array();
 		
-		array_push( $array, json_encode( $values ) ) ;
+		foreach ( $values as $value ) {
+		
+			$format = "text";
+		
+			if ( array_key_exists( "datatype", $value ) )  {
+			
+				if ( $value["datatype"] == "time" ) {
+					$format = "time";
+				} else {
+					$format = "text";
+				}
+				
+				if ( $format == "text" ) {
+					
+					if ( array_key_exists( "text", $value ) )  {
+						
+						array_push( $array, $value["text"] );
+					}
+				}
+				
+				if ( $format == "time" ) {
+					
+					if ( array_key_exists( "text", $value ) )  {
+						
+						$timestr = $value["text"];
+						
+						if ( array_key_exists( "time", $timestr ) ) {
+							
+							$time = $timestr["time"];
+							
+							array_push( $array, $time );
+						}
+						
+					}
+					
+				}
+				
+			}
+				
+		}
 		
 		return $array;
 		
